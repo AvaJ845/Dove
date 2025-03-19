@@ -1,5 +1,5 @@
 # modules/data.py
-# Handles data initialization, storage, and retrieval
+# Handles data initialization and loading
 
 import pandas as pd
 import streamlit as st
@@ -9,45 +9,48 @@ def initialize_data():
     
     # Monthly ETFs data
     st.session_state.monthly_etfs_data = {
-        'Ticker': ['JEPI', 'JEPQ', 'DIVO', 'SDIV', 'CLM'],
+        'Ticker': ['JEPI', 'JEPQ', 'DIVO', 'SDIV', 'CLM', 'MAIN', 'PSEC'],
         'Name': [
             'JPMorgan Equity Premium Income ETF',
             'JPMorgan Nasdaq Equity Premium Income ETF',
             'Amplify CWP Enhanced Dividend Income ETF',
             'Global X SuperDividend ETF',
-            'Cornerstone Strategic Value Fund'
+            'Cornerstone Strategic Value Fund',
+            'Main Street Capital Corporation',
+            'Prospect Capital Corporation'
         ],
-        'Price': [55, 48, 38, 22, 7],
-        'Annual_Yield': [6.0, 5.4, 4.2, 8.4, 24.0],
-        'Monthly_Yield': [0.5, 0.45, 0.35, 0.7, 2.0],
-        'Shares': [500, 450, 400, 600, 1200]
+        'Price': [55, 48, 38, 22, 7, 42, 6],
+        'Annual_Yield': [6.0, 5.4, 4.2, 8.4, 24.0, 6.8, 11.5],
+        'Monthly_Yield': [0.5, 0.45, 0.35, 0.7, 2.0, 0.57, 0.96],
+        'Shares': [500, 450, 400, 600, 1200, 0, 0]
     }
     
     # Group 1 quarterly stocks data (Jan/Apr/Jul/Oct)
     st.session_state.group1_data = {
-        'Ticker': ['PG', 'KO', 'JNJ', 'PEP'],
-        'Name': ['Procter & Gamble', 'Coca-Cola', 'Johnson & Johnson', 'PepsiCo'],
-        'Price': [165, 60, 150, 170],
-        'Annual_Yield': [2.4, 2.8, 3.0, 2.9],
-        'Shares': [120, 200, 150, 110]
+        'Ticker': ['PG', 'KO', 'JNJ', 'PEP', 'MSFT', 'V', 'NKE'],
+        'Name': ['Procter & Gamble', 'Coca-Cola', 'Johnson & Johnson', 'PepsiCo', 'Microsoft', 'Visa', 'Nike'],
+        'Price': [165, 60, 150, 170, 425, 280, 98],
+        'Annual_Yield': [2.4, 2.8, 3.0, 2.9, 0.7, 0.8, 1.2],
+        'Shares': [120, 200, 150, 110, 0, 0, 0]
     }
     
     # Group 2 quarterly stocks data (Feb/May/Aug/Nov)
     st.session_state.group2_data = {
-        'Ticker': ['MMM', 'ABT', 'XOM', 'LOW'],
-        'Name': ['3M', 'Abbott Laboratories', 'Exxon Mobil', 'Lowe\'s'],
-        'Price': [90, 110, 110, 220],
-        'Annual_Yield': [5.6, 2.0, 3.5, 2.0],
-        'Shares': [180, 150, 200, 100]
+        'Ticker': ['MMM', 'ABT', 'XOM', 'LOW', 'AAPL', 'TGT', 'HRL'],
+        'Name': ['3M', 'Abbott Laboratories', 'Exxon Mobil', 'Lowe\'s', 'Apple', 'Target', 'Hormel Foods'],
+        'Price': [90, 110, 110, 220, 178, 165, 35],
+        'Annual_Yield': [5.6, 2.0, 3.5, 2.0, 0.5, 3.0, 3.2],
+        'Shares': [180, 150, 200, 100, 0, 0, 0]
     }
     
     # Group 3 quarterly stocks data (Mar/Jun/Sep/Dec)
     st.session_state.group3_data = {
-        'Ticker': ['KMB', 'T', 'CVX', 'MCD'],
-        'Name': ['Kimberly-Clark', 'AT&T', 'Chevron', 'McDonald\'s'],
-        'Price': [130, 17, 145, 270],
-        'Annual_Yield': [3.5, 6.5, 4.2, 2.3],
-        'Shares': [180, 2000, 160, 120]
+        'Ticker': ['KMB', 'T', 'CVX', 'MCD', 'MO', 'SBUX', 'LLY', 'GPC', 'EMR', 'NOV', 'VOO'],
+        'Name': ['Kimberly-Clark', 'AT&T', 'Chevron', 'McDonald\'s', 'Altria Group', 'Starbucks', 'Eli Lilly', 
+                'Genuine Parts Company', 'Emerson Electric', 'NOV Inc.', 'Vanguard S&P 500 ETF'],
+        'Price': [130, 17, 145, 270, 45, 95, 770, 150, 110, 18, 485],
+        'Annual_Yield': [3.5, 6.5, 4.2, 2.3, 7.8, 2.4, 0.9, 2.5, 2.2, 1.1, 1.4],
+        'Shares': [180, 2000, 160, 120, 0, 0, 0, 0, 0, 0, 0]
     }
 
 def calculate_monthly_etf_income(df):
@@ -96,7 +99,7 @@ def get_all_stocks():
         all_stocks.append({
             'Ticker': row['Ticker'],
             'Name': row['Name'],
-            'Type': 'Monthly ETF',
+            'Type': 'Monthly ETF/BDC',
             'Annual Yield': f"{row['Annual_Yield']}%",
             'Payment Schedule': 'Monthly'
         })
