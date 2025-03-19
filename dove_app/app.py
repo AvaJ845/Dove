@@ -4,7 +4,7 @@ import streamlit as st
 from modules.data import initialize_data, load_dataframes
 from modules.calculations import calculate_monthly_income, calculate_portfolio_metrics
 from modules.visualizations import create_monthly_chart, create_allocation_pie, create_income_source_pie
-from modules.projections import calculate_future_income, create_projection_chart, calculate_drip_growth, create_drip_chart
+from modules.projections import calculate_future_income, create_projection_chart, calculate_drip_growth
 from modules.ui_components import (render_portfolio_editor, render_projection_controls, 
                                   render_drip_controls, display_metrics, 
                                   display_header, display_footer)
@@ -161,13 +161,62 @@ with tab3:
     
     drip_percentage, additional_investment, price_growth = render_drip_controls()
     
-    # Calculate and display DRIP growth
+    # Calculate DRIP growth
     drip_df = calculate_drip_growth(
         total_investment, annual_income, years, 
         drip_percentage, additional_investment, price_growth
     )
     
-    fig = create_drip_chart(drip_df, years)
+    # Create DRIP chart manually
+    import plotly.express as px
+    
+    fig = px.line(
+        drip_df,
+        x='Year',
+        y=['Portfolio Value', 'Annual Dividend Income'],
+        labels={'value': 'Amount ($)', 'variable': 'Type'},
+        title="Portfolio and Dividend Growth with DRIP",
+        color_discrete_sequence=['#1E6642', '#4CAF50']
+    )
+    
+    fig.update_layout(
+        xaxis_title="Years from Now",
+        yaxis_title="Amount ($)",
+        legend_title="Type",
+        plot_bgcolor='rgba(0,0,0,0)',
+        height=600,
+        yaxis_type="log"  # Logarithmic scale for better visualization
+    )
+    
+    # Add annotations for specific years
+    for year in [0, 5, 10, 15, 20, 25, 30]:
+        if year in drip_df['Year'].values and year <= years:
+            idx = drip_df[drip_df['Year'] == year].index[0]
+            value = drip_df.loc[idx, 'Portfolio Value']
+            dividend = drip_df.loc[idx, 'Annual Dividend Income']
+            
+            # Only annotate some points to avoid clutter
+            if year % 10 == 0 or year == 0:
+                fig.add_annotation(
+                    x=year,
+                    y=value,
+                    text=f"${value:,.0f}",
+                    showarrow=True,
+                    arrowhead=1,
+                    ax=0,
+                    ay=-40
+                )
+                
+                fig.add_annotation(
+                    x=year,
+                    y=dividend,
+                    text=f"${dividend:,.0f}",
+                    showarrow=True,
+                    arrowhead=1,
+                    ax=0,
+                    ay=30
+                )
+    
     st.plotly_chart(fig, use_container_width=True)
     
     # Format the DRIP dataframe for display
