@@ -1,4 +1,4 @@
-# app.py - Simplified working version
+# app.py - Main application file with new Recommendations tab
 
 import streamlit as st
 import pandas as pd
@@ -14,6 +14,7 @@ from modules.ui_components import (render_portfolio_editor, render_projection_co
                                   render_drip_controls, display_metrics, 
                                   display_header, display_footer)
 from modules.database import initialize_database
+from modules.recommendations import render_recommendations
 
 # Set page configuration
 st.set_page_config(
@@ -21,6 +22,10 @@ st.set_page_config(
     page_icon="🕊️",
     layout="wide"
 )
+
+# Add custom CSS
+from modules.ui_components import load_css
+load_css()
 
 # Initialize data if needed
 if 'initialized' not in st.session_state:
@@ -38,7 +43,7 @@ Aristocrats, and monthly dividend ETFs. Adjust share quantities to see how your 
 """)
 
 # Main tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Dashboard", "📝 Portfolio Editor", "📈 Income Projections", "💾 Portfolio Manager", "ℹ️ About"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📊 Dashboard", "📝 Portfolio Editor", "📈 Income Projections", "🎯 Recommendations", "💾 Portfolio Manager", "ℹ️ About"])
 
 with tab1:
     st.header("Monthly Dividend Income Dashboard")
@@ -220,11 +225,15 @@ with tab3:
         st.write("Technical details:", str(e))
 
 with tab4:
+    # Render the new Recommendations tab
+    render_recommendations()
+
+with tab5:
     st.header("Portfolio Manager")
     from modules.portfolio_manager import render_portfolio_manager
     render_portfolio_manager()
 
-with tab5:
+with tab6:
     st.header("About")
     from modules.about import render_about_page
     render_about_page()
