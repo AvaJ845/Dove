@@ -1,4 +1,5 @@
 # app.py - Main application file
+
 import streamlit as st
 from modules.data import initialize_data, load_dataframes
 from modules.calculations import calculate_monthly_income, calculate_portfolio_metrics
@@ -160,80 +161,87 @@ with tab3:
     
     drip_percentage, additional_investment, price_growth = render_drip_controls()
     
-    # Calculate DRIP growth
+    # Calculate DRIP growth with improved error handling
     drip_df = calculate_drip_growth(
         total_investment, annual_income, years, 
         drip_percentage, additional_investment, price_growth
     )
     
-    # Create DRIP chart manually
+    # Create DRIP chart with proper error handling
     import plotly.express as px
     
-    fig = px.line(
-        drip_df,
-        x='Year',
-        y=['Portfolio Value', 'Annual Dividend Income'],
-        labels={'value': 'Amount ($)', 'variable': 'Type'},
-        title="Portfolio and Dividend Growth with DRIP",
-        color_discrete_sequence=['#1E6642', '#4CAF50']
-    )
-    
-    fig.update_layout(
-        xaxis_title="Years from Now",
-        yaxis_title="Amount ($)",
-        legend_title="Type",
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=600,
-        yaxis_type="log"  # Logarithmic scale for better visualization
-    )
-    
-    # Add annotations for specific years
-    for year in [0, 5, 10, 15, 20, 25, 30]:
-        if year in drip_df['Year'].values and year <= years:
-            idx = drip_df[drip_df['Year'] == year].index[0]
-            value = drip_df.loc[idx, 'Portfolio Value']
-            dividend = drip_df.loc[idx, 'Annual Dividend Income']
-            
-            # Only annotate some points to avoid clutter
-            if year % 10 == 0 or year == 0:
-                fig.add_annotation(
-                    x=year,
-                    y=value,
-                    text=f"${value:,.0f}",
-                    showarrow=True,
-                    arrowhead=1,
-                    ax=0,
-                    ay=-40
-                )
+    # Only create the chart if the DataFrame has data
+    if not drip_df.empty and all(col in drip_df.columns for col in ['Year', 'Portfolio Value', 'Annual Dividend Income']):
+        fig = px.line(
+            data_frame=drip_df,
+            x='Year',
+            y=['Portfolio Value', 'Annual Dividend Income'],
+            labels={'value': 'Amount ($)', 'variable': 'Type'},
+            title="Portfolio and Dividend Growth with DRIP",
+            color_discrete_sequence=['#1E6642', '#4CAF50']
+        )
+        
+        fig.update_layout(
+            xaxis_title="Years from Now",
+            yaxis_title="Amount ($)",
+            legend_title="Type",
+            plot_bgcolor='rgba(0,0,0,0)',
+            height=600,
+            yaxis_type="log"  # Logarithmic scale for better visualization
+        )
+        
+        # Add annotations for specific years
+        for year in [0, 5, 10, 15, 20, 25, 30]:
+            if year in drip_df['Year'].values and year <= years:
+                idx = drip_df[drip_df['Year'] == year].index[0]
+                value = drip_df.loc[idx, 'Portfolio Value']
+                dividend = drip_df.loc[idx, 'Annual Dividend Income']
                 
-                fig.add_annotation(
-                    x=year,
-                    y=dividend,
-                    text=f"${dividend:,.0f}",
-                    showarrow=True,
-                    arrowhead=1,
-                    ax=0,
-                    ay=30
-                )
-    
-    st.plotly_chart(fig, use_container_width=True)
+                # Only annotate some points to avoid clutter
+                if year % 10 == 0 or year == 0:
+                    fig.add_annotation(
+                        x=year,
+                        y=value,
+                        text=f"${value:,.0f}",
+                        showarrow=True,
+                        arrowhead=1,
+                        ax=0,
+                        ay=-40
+                    )
+                    
+                    fig.add_annotation(
+                        x=year,
+                        y=dividend,
+                        text=f"${dividend:,.0f}",
+                        showarrow=True,
+                        arrowhead=1,
+                        ax=0,
+                        ay=30
+                    )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Unable to generate DRIP chart. Please adjust your portfolio or DRIP settings.")
     
     # Format the DRIP dataframe for display
-    formatted_drip_df = drip_df.copy()
-    for col in ['Portfolio Value', 'Annual Dividend Income', 'Monthly Income']:
-        formatted_drip_df[col] = formatted_drip_df[col].apply(lambda x: f"${x:,.2f}")
-    
-    st.dataframe(formatted_drip_df, use_container_width=True)
-    
-    # Final summary based on projections
-    final_year = years
-    final_portfolio_value = drip_df['Portfolio Value'].iloc[-1]
-    final_annual_income = drip_df['Annual Dividend Income'].iloc[-1]
-    final_monthly_income = final_annual_income / 12
-    final_yield = (final_annual_income / final_portfolio_value) * 100
-    
-    st.subheader(f"Projected Status After {final_year} Years")
-    display_metrics(final_portfolio_value, final_annual_income, final_monthly_income, final_yield)
+    if not drip_df.empty:
+        formatted_drip_df = drip_df.copy()
+        for col in ['Portfolio Value', 'Annual Dividend Income', 'Monthly Income']:
+            if col in formatted_drip_df.columns:
+                formatted_drip_df[col] = formatted_drip_df[col].apply(lambda x: f"${x:,.2f}")
+        
+        st.dataframe(formatted_drip_df, use_container_width=True)
+        
+        # Final summary based on projections
+        if years > 0 and len(drip_df) > years:
+            final_year = years
+            final_portfolio_value = drip_df['Portfolio Value'].iloc[-1]
+            final_annual_income = drip_df['Annual Dividend Income'].iloc[-1]
+            final_monthly_income = final_annual_income / 12
+            final_yield = (final_annual_income / final_portfolio_value) * 100 if final_portfolio_value > 0 else 0
+            
+            st.subheader(f"Projected Status After {final_year} Years")
+            display_metrics(final_portfolio_value, final_annual_income, final_monthly_income, final_yield)
 
 with tab4:
     from modules.portfolio_manager import render_portfolio_manager
