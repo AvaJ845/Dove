@@ -3,7 +3,6 @@
 
 import streamlit as st
 import pandas as pd
-from modules.data import load_dataframes
 
 def load_css():
     """Load basic CSS styles"""
