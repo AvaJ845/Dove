@@ -1,46 +1,17 @@
 # modules/ui_components.py
-# UI components and rendering functions
+# UI components and rendering functions with reset button
 
 import streamlit as st
 import pandas as pd
-from modules.data import load_dataframes
 
 def load_css():
-    """Load custom CSS styles"""
+    """Load basic CSS styles"""
     st.markdown("""
     <style>
-        .main {
-            padding: 1rem 1rem;
-            margin-bottom: 60px; /* Space for footer */
-        }
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 2px;
-        }
-        .stTabs [data-baseweb="tab"] {
-            height: 50px;
-            white-space: pre-wrap;
-            background-color: #f0f2f6;
-            border-radius: 4px 4px 0 0;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        .stTabs [aria-selected="true"] {
-            background-color: #4c86b0;
-            color: white;
-        }
-        h1, h2, h3 {
-            color: #1E3A8A;
-        }
-        .stSlider > div > div > div {
-            color: #1E3A8A;
-        }
         .header-container {
             text-align: center;
             padding: 1rem 0;
-            margin-bottom: 2rem;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
         }
         .footer-container {
             position: fixed;
@@ -55,11 +26,10 @@ def load_css():
         }
         .dove-icon {
             font-size: 2.5rem;
-            color: #6c757d;
             margin-bottom: 0.5rem;
         }
         .app-title {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: bold;
             margin: 0;
             color: #1E3A8A;
@@ -73,8 +43,42 @@ def load_css():
             font-weight: 500;
             color: #495057;
         }
+        .reset-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .reset-button:hover {
+            background-color: #c82333;
+        }
     </style>
     """, unsafe_allow_html=True)
+
+def reset_all_shares():
+    """Reset all stock shares to zero"""
+    # Reset monthly ETFs
+    for i in range(len(st.session_state.monthly_etfs_data['Shares'])):
+        st.session_state.monthly_etfs_data['Shares'][i] = 0
+    
+    # Reset group 1 stocks
+    for i in range(len(st.session_state.group1_data['Shares'])):
+        st.session_state.group1_data['Shares'][i] = 0
+    
+    # Reset group 2 stocks
+    for i in range(len(st.session_state.group2_data['Shares'])):
+        st.session_state.group2_data['Shares'][i] = 0
+    
+    # Reset group 3 stocks
+    for i in range(len(st.session_state.group3_data['Shares'])):
+        st.session_state.group3_data['Shares'][i] = 0
+    
+    # Reset all number input widgets by setting a rerun flag
+    st.session_state.reset_triggered = True
 
 def display_metrics(value1, value2, value3, value4, labels=None):
     """Display key metrics in a row of columns"""
@@ -99,11 +103,25 @@ def display_metrics(value1, value2, value3, value4, labels=None):
         st.metric(labels[3], formats[3].format(values[3]))
 
 def render_portfolio_editor():
-    """Render the portfolio editor section"""
+    """Render the portfolio editor section with reset button"""
+    # Add reset button at the top
+    reset_col1, reset_col2 = st.columns([1, 5])
+    with reset_col1:
+        if st.button("Reset All Shares to Zero", type="primary", use_container_width=True):
+            reset_all_shares()
+            st.rerun()  # Trigger a rerun to update all widgets
+    
+    with reset_col2:
+        st.info("Warning: This will set all stock share quantities to zero. This action cannot be undone.")
+    
+    # Check if we need to rerun after reset (should only happen once)
+    if 'reset_triggered' in st.session_state and st.session_state.reset_triggered:
+        st.session_state.reset_triggered = False
+    
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("Monthly Dividend ETFs")
+        st.subheader("Monthly Dividend ETFs/BDCs")
         
         monthly_etfs_df = pd.DataFrame(st.session_state.monthly_etfs_data)
         
