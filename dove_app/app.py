@@ -1,4 +1,4 @@
-# app.py - Main application file
+# app.py - Main application file with improved visual design
 
 import streamlit as st
 import pandas as pd
@@ -38,15 +38,19 @@ display_header()
 
 # Introduction
 st.markdown("""
-This application helps you track and project dividend income from a portfolio of Dividend Kings, 
-Aristocrats, and monthly dividend ETFs. Adjust share quantities to see how your monthly and yearly income changes.
-""")
+<div class="intro-text">
+    This application helps you track and project dividend income from a portfolio of Dividend Kings, 
+    Aristocrats, and monthly dividend ETFs. Adjust share quantities to see how your monthly and yearly income changes.
+    
+    Create a personalized dividend income stream that provides consistent monthly cash flow for financial independence.
+</div>
+""", unsafe_allow_html=True)
 
 # Main tabs
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Dashboard", "📝 Portfolio Editor", "📈 Income Projections", "💾 Portfolio Manager", "ℹ️ About"])
 
 with tab1:
-    st.header("Monthly Dividend Income Dashboard")
+    st.markdown('<div class="section-header">Monthly Dividend Income Dashboard</div>', unsafe_allow_html=True)
     
     # Load and calculate dataframes
     monthly_etfs_df, group1_df, group2_df, group3_df = load_dataframes()
@@ -66,12 +70,27 @@ with tab1:
     display_metrics(total_investment, annual_income, average_monthly_income, portfolio_yield)
     
     # Monthly income chart
-    st.subheader("Monthly Income Distribution")
+    st.markdown('<div class="section-header">Monthly Income Distribution</div>', unsafe_allow_html=True)
     fig = create_monthly_chart(months, monthly_income, average_monthly_income)
+    
+    # Update chart styling
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial, sans-serif", size=14),
+        margin=dict(l=40, r=40, t=40, b=40),
+        legend=dict(
+            bgcolor='rgba(255,255,255,0.8)',
+            bordercolor='rgba(0,0,0,0.1)',
+            borderwidth=1
+        ),
+        height=500
+    )
+    
     st.plotly_chart(fig, use_container_width=True)
     
     # Asset allocation charts
-    st.subheader("Asset Allocation")
+    st.markdown('<div class="section-header">Asset Allocation & Income Sources</div>', unsafe_allow_html=True)
     
     monthly_etf_total = monthly_etfs_df['Investment'].sum()
     group1_total = group1_df['Investment'].sum()
@@ -81,9 +100,20 @@ with tab1:
     col1, col2 = st.columns([3, 2])
     
     with col1:
+        st.markdown("### Portfolio Allocation")
         fig = create_allocation_pie(
             monthly_etf_total, group1_total, group2_total, group3_total
         )
+        
+        # Update pie chart styling
+        fig.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family="Arial, sans-serif", size=14),
+            margin=dict(l=20, r=20, t=30, b=20),
+            height=400
+        )
+        
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
@@ -94,19 +124,31 @@ with tab1:
             group2_quarterly * 4, 
             group3_quarterly * 4
         )
+        
+        # Update pie chart styling
+        fig2.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family="Arial, sans-serif", size=14),
+            margin=dict(l=20, r=20, t=30, b=20),
+            height=400
+        )
+        
         st.plotly_chart(fig2, use_container_width=True)
 
 with tab2:
-    st.header("Portfolio Editor")
+    st.markdown('<div class="section-header">Portfolio Editor</div>', unsafe_allow_html=True)
     st.markdown("""
-    Adjust your share quantities below to see how it affects your dividend income.
-    Each change you make will be reflected in the Dashboard and Projections.
-    """)
+    <div class="intro-text">
+        Adjust your share quantities below to see how it affects your dividend income.
+        Each change you make will be reflected in the Dashboard and Projections.
+    </div>
+    """, unsafe_allow_html=True)
     
     render_portfolio_editor()
 
 with tab3:
-    st.header("Income Projections")
+    st.markdown('<div class="section-header">Income Projections</div>', unsafe_allow_html=True)
     
     # Load and calculate dataframes
     monthly_etfs_df, group1_df, group2_df, group3_df = load_dataframes()
@@ -139,17 +181,32 @@ with tab3:
             formatted_income_df[col] = formatted_income_df[col].apply(lambda x: f"${x:,.2f}")
     
     # Display the monthly income table
-    st.subheader("Monthly Income Breakdown")
+    st.markdown('<div class="section-header">Monthly Income Breakdown</div>', unsafe_allow_html=True)
     st.dataframe(formatted_income_df, use_container_width=True)
     
     # Income growth projection
-    st.subheader("Future Income Projections")
+    st.markdown('<div class="section-header">Future Income Projections</div>', unsafe_allow_html=True)
     
     years, growth_rate = render_projection_controls()
     
     # Calculate and display projections
     projection_df = calculate_future_income(annual_income, years, growth_rate)
     fig = create_projection_chart(projection_df, years, growth_rate)
+    
+    # Update chart styling
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial, sans-serif", size=14),
+        margin=dict(l=40, r=40, t=40, b=40),
+        legend=dict(
+            bgcolor='rgba(255,255,255,0.8)',
+            bordercolor='rgba(0,0,0,0.1)',
+            borderwidth=1
+        ),
+        height=500
+    )
+    
     st.plotly_chart(fig, use_container_width=True)
     
     # Format the projection dataframe for display
@@ -160,7 +217,7 @@ with tab3:
     st.dataframe(formatted_projection_df, use_container_width=True)
     
     # Compound growth calculator
-    st.subheader("Compound Growth with DRIP")
+    st.markdown('<div class="section-header">Compound Growth with DRIP</div>', unsafe_allow_html=True)
     
     drip_percentage, additional_investment, price_growth = render_drip_controls()
     
@@ -171,8 +228,8 @@ with tab3:
             drip_percentage, additional_investment, price_growth
         )
         
-        # Debug the dataframe
-        with st.expander("Debug information (click to expand)"):
+        # Debug the dataframe (hidden in expandable section)
+        with st.expander("Technical Details"):
             st.write("Type of drip_df:", type(drip_df))
             st.write("Is drip_df empty?", drip_df.empty if hasattr(drip_df, 'empty') else "Not a DataFrame")
             st.write("drip_df shape:", drip_df.shape if hasattr(drip_df, 'shape') else "Not a DataFrame")
@@ -197,6 +254,14 @@ with tab3:
                     yaxis_title="Amount ($)",
                     legend_title="Type",
                     plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(family="Arial, sans-serif", size=14),
+                    margin=dict(l=40, r=40, t=40, b=40),
+                    legend=dict(
+                        bgcolor='rgba(255,255,255,0.8)',
+                        bordercolor='rgba(0,0,0,0.1)',
+                        borderwidth=1
+                    ),
                     height=600,
                     yaxis_type="log"  # Logarithmic scale for better visualization
                 )
@@ -217,7 +282,12 @@ with tab3:
                                 showarrow=True,
                                 arrowhead=1,
                                 ax=0,
-                                ay=-40
+                                ay=-40,
+                                font=dict(size=12, color="#1E3A8A", family="Arial, sans-serif"),
+                                bgcolor="rgba(255, 255, 255, 0.8)",
+                                bordercolor="#e9ecef",
+                                borderwidth=1,
+                                borderpad=4
                             )
                             
                             fig.add_annotation(
@@ -227,7 +297,12 @@ with tab3:
                                 showarrow=True,
                                 arrowhead=1,
                                 ax=0,
-                                ay=30
+                                ay=30,
+                                font=dict(size=12, color="#1E6642", family="Arial, sans-serif"),
+                                bgcolor="rgba(255, 255, 255, 0.8)",
+                                bordercolor="#e9ecef",
+                                borderwidth=1,
+                                borderpad=4
                             )
                 
                 st.plotly_chart(fig, use_container_width=True)
@@ -240,15 +315,23 @@ with tab3:
                     # Create figure directly with go.Figure
                     fig = go.Figure()
                     fig.add_trace(go.Scatter(x=drip_df['Year'], y=drip_df['Portfolio Value'], 
-                                            name='Portfolio Value', mode='lines'))
+                                            name='Portfolio Value', mode='lines', line=dict(color='#1E6642', width=3)))
                     fig.add_trace(go.Scatter(x=drip_df['Year'], y=drip_df['Annual Dividend Income'], 
-                                            name='Annual Dividend Income', mode='lines'))
+                                            name='Annual Dividend Income', mode='lines', line=dict(color='#4CAF50', width=3)))
                     
                     fig.update_layout(
                         title="Portfolio and Dividend Growth with DRIP",
                         xaxis_title="Years from Now",
                         yaxis_title="Amount ($)",
                         plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        font=dict(family="Arial, sans-serif", size=14),
+                        margin=dict(l=40, r=40, t=40, b=40),
+                        legend=dict(
+                            bgcolor='rgba(255,255,255,0.8)',
+                            bordercolor='rgba(0,0,0,0.1)',
+                            borderwidth=1
+                        ),
                         height=600,
                         yaxis_type="log"
                     )
@@ -276,17 +359,19 @@ with tab3:
                 final_monthly_income = final_annual_income / 12
                 final_yield = (final_annual_income / final_portfolio_value) * 100 if final_portfolio_value > 0 else 0
                 
-                st.subheader(f"Projected Status After {final_year} Years")
+                st.markdown('<div class="section-header">Projected Status After ' + str(final_year) + ' Years</div>', unsafe_allow_html=True)
                 display_metrics(final_portfolio_value, final_annual_income, final_monthly_income, final_yield)
     except Exception as e:
         st.error(f"Error calculating DRIP growth: {str(e)}")
         st.info("Please try adjusting your portfolio or DRIP settings.")
 
 with tab4:
+    st.markdown('<div class="section-header">Portfolio Management</div>', unsafe_allow_html=True)
     from modules.portfolio_manager import render_portfolio_manager
     render_portfolio_manager()
 
 with tab5:
+    st.markdown('<div class="section-header">About Dove</div>', unsafe_allow_html=True)
     from modules.about import render_about_page
     render_about_page()
 
