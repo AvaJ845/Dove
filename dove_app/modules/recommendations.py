@@ -7,8 +7,6 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from modules.data import load_dataframes
-
 def render_recommendations():
     """Render the recommendations page with strategies to reach income goals"""
     st.header("Dividend Strategy Recommendations")
@@ -37,50 +35,47 @@ def render_recommendations():
             value="Moderate"
         )
     
-    # Load data
-    monthly_etfs_df, group1_df, group2_df, group3_df = load_dataframes()
-    
-    # Create combined dataframes for analysis
-    # For monthly payers - need to convert annual yield to monthly
+    # Get data directly from session state to avoid circular imports
+    # Monthly payers - need to convert annual yield to monthly
     monthly_payers = pd.DataFrame({
-        'Ticker': monthly_etfs_df['Ticker'],
-        'Name': monthly_etfs_df['Name'],
-        'Price': monthly_etfs_df['Price'],
-        'Annual_Yield': monthly_etfs_df['Annual_Yield'],
-        'Monthly_Yield': monthly_etfs_df['Monthly_Yield'],
-        'Payment_Frequency': ['Monthly'] * len(monthly_etfs_df),
-        'Category': ['Monthly ETF/BDC'] * len(monthly_etfs_df)
+        'Ticker': st.session_state.monthly_etfs_data['Ticker'],
+        'Name': st.session_state.monthly_etfs_data['Name'],
+        'Price': st.session_state.monthly_etfs_data['Price'],
+        'Annual_Yield': st.session_state.monthly_etfs_data['Annual_Yield'],
+        'Monthly_Yield': st.session_state.monthly_etfs_data['Monthly_Yield'],
+        'Payment_Frequency': ['Monthly'] * len(st.session_state.monthly_etfs_data['Ticker']),
+        'Category': ['Monthly ETF/BDC'] * len(st.session_state.monthly_etfs_data['Ticker'])
     })
     
     # For quarterly payers - need to calculate effective monthly yield
     quarterly_payers1 = pd.DataFrame({
-        'Ticker': group1_df['Ticker'],
-        'Name': group1_df['Name'],
-        'Price': group1_df['Price'],
-        'Annual_Yield': group1_df['Annual_Yield'],
-        'Monthly_Yield': group1_df['Annual_Yield'] / 12,  # Convert annual to monthly
-        'Payment_Frequency': ['Quarterly (Jan/Apr/Jul/Oct)'] * len(group1_df),
-        'Category': ['Dividend Stock'] * len(group1_df)
+        'Ticker': st.session_state.group1_data['Ticker'],
+        'Name': st.session_state.group1_data['Name'],
+        'Price': st.session_state.group1_data['Price'],
+        'Annual_Yield': st.session_state.group1_data['Annual_Yield'],
+        'Monthly_Yield': [y/12 for y in st.session_state.group1_data['Annual_Yield']],  # Convert annual to monthly
+        'Payment_Frequency': ['Quarterly (Jan/Apr/Jul/Oct)'] * len(st.session_state.group1_data['Ticker']),
+        'Category': ['Dividend Stock'] * len(st.session_state.group1_data['Ticker'])
     })
     
     quarterly_payers2 = pd.DataFrame({
-        'Ticker': group2_df['Ticker'],
-        'Name': group2_df['Name'],
-        'Price': group2_df['Price'],
-        'Annual_Yield': group2_df['Annual_Yield'],
-        'Monthly_Yield': group2_df['Annual_Yield'] / 12,  # Convert annual to monthly
-        'Payment_Frequency': ['Quarterly (Feb/May/Aug/Nov)'] * len(group2_df),
-        'Category': ['Dividend Stock'] * len(group2_df)
+        'Ticker': st.session_state.group2_data['Ticker'],
+        'Name': st.session_state.group2_data['Name'],
+        'Price': st.session_state.group2_data['Price'],
+        'Annual_Yield': st.session_state.group2_data['Annual_Yield'],
+        'Monthly_Yield': [y/12 for y in st.session_state.group2_data['Annual_Yield']],  # Convert annual to monthly
+        'Payment_Frequency': ['Quarterly (Feb/May/Aug/Nov)'] * len(st.session_state.group2_data['Ticker']),
+        'Category': ['Dividend Stock'] * len(st.session_state.group2_data['Ticker'])
     })
     
     quarterly_payers3 = pd.DataFrame({
-        'Ticker': group3_df['Ticker'],
-        'Name': group3_df['Name'],
-        'Price': group3_df['Price'],
-        'Annual_Yield': group3_df['Annual_Yield'],
-        'Monthly_Yield': group3_df['Annual_Yield'] / 12,  # Convert annual to monthly
-        'Payment_Frequency': ['Quarterly (Mar/Jun/Sep/Dec)'] * len(group3_df),
-        'Category': ['Dividend Stock'] * len(group3_df)
+        'Ticker': st.session_state.group3_data['Ticker'],
+        'Name': st.session_state.group3_data['Name'],
+        'Price': st.session_state.group3_data['Price'],
+        'Annual_Yield': st.session_state.group3_data['Annual_Yield'],
+        'Monthly_Yield': [y/12 for y in st.session_state.group3_data['Annual_Yield']],  # Convert annual to monthly
+        'Payment_Frequency': ['Quarterly (Mar/Jun/Sep/Dec)'] * len(st.session_state.group3_data['Ticker']),
+        'Category': ['Dividend Stock'] * len(st.session_state.group3_data['Ticker'])
     })
     
     # Combine all dataframes
@@ -125,30 +120,31 @@ def render_recommendations():
     st.subheader("Recommended Strategies")
     
     # 1. Single Stock Strategy (lowest investment)
-    single_stock = filtered_stocks.iloc[0]
-    
-    st.markdown("### Strategy 1: Single Stock Approach (Lowest Investment)")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown(f"""
-        **{single_stock['Ticker']} - {single_stock['Name']}**
-        - Price: ${single_stock['Price']:.2f} per share
-        - Yield: {single_stock['Annual_Yield']:.2f}% annual ({single_stock['Monthly_Yield']:.2f}% monthly)
-        - Payment frequency: {single_stock['Payment_Frequency']}
-        - Risk level: {single_stock['Risk_Category']}
-        """)
-    
-    with col2:
-        st.markdown(f"""
-        **To reach ${target_monthly_income:.2f} monthly income:**
-        - Required shares: {int(single_stock['Required_Shares']):,}
-        - Total investment: ${single_stock['Required_Investment']:,.2f}
-        - Monthly income per $1,000 invested: ${single_stock['Income_per_1000']:.2f}
-        """)
-    
-    st.warning(f"Note: This strategy concentrates all your investment in a single security ({single_stock['Ticker']}), which lacks diversification.")
+    if len(filtered_stocks) > 0:
+        single_stock = filtered_stocks.iloc[0]
+        
+        st.markdown("### Strategy 1: Single Stock Approach (Lowest Investment)")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown(f"""
+            **{single_stock['Ticker']} - {single_stock['Name']}**
+            - Price: ${single_stock['Price']:.2f} per share
+            - Yield: {single_stock['Annual_Yield']:.2f}% annual ({single_stock['Monthly_Yield']:.2f}% monthly)
+            - Payment frequency: {single_stock['Payment_Frequency']}
+            - Risk level: {single_stock['Risk_Category']}
+            """)
+        
+        with col2:
+            st.markdown(f"""
+            **To reach ${target_monthly_income:.2f} monthly income:**
+            - Required shares: {int(single_stock['Required_Shares']):,}
+            - Total investment: ${single_stock['Required_Investment']:,.2f}
+            - Monthly income per $1,000 invested: ${single_stock['Income_per_1000']:.2f}
+            """)
+        
+        st.warning(f"Note: This strategy concentrates all your investment in a single security ({single_stock['Ticker']}), which lacks diversification.")
     
     # 2. Balanced Monthly Income Strategy
     st.markdown("### Strategy 2: Balanced Monthly Income Portfolio")
@@ -416,13 +412,15 @@ def render_recommendations():
     
     comparison_data = []
     
-    # Add single stock strategy
-    comparison_data.append({
-        'Strategy': 'Single Stock',
-        'Total Investment': single_stock['Required_Investment'],
-        'Monthly Income': target_monthly_income,
-        'Annual Return': target_monthly_income * 12 / single_stock['Required_Investment'] * 100
-    })
+    # Only add if we have the necessary data
+    if 'single_stock' in locals():
+        # Add single stock strategy
+        comparison_data.append({
+            'Strategy': 'Single Stock',
+            'Total Investment': single_stock['Required_Investment'],
+            'Monthly Income': target_monthly_income,
+            'Annual Return': target_monthly_income * 12 / single_stock['Required_Investment'] * 100
+        })
     
     # Add monthly strategy if available
     if 'monthly_strategy' in locals():
@@ -430,7 +428,7 @@ def render_recommendations():
             'Strategy': 'Monthly Portfolio',
             'Total Investment': sum(total_investment),
             'Monthly Income': sum(monthly_incomes),
-            'Annual Return': sum(monthly_incomes) * 12 / sum(total_investment) * 100
+            'Annual Return': sum(monthly_incomes) * 12 / sum(total_investment) * 100 if sum(total_investment) > 0 else 0
         })
     
     # Add quarterly strategy if available
@@ -439,7 +437,7 @@ def render_recommendations():
             'Strategy': 'Quarterly Portfolio',
             'Total Investment': sum(total_investment),
             'Monthly Income': sum(quarterly_incomes) / 3,
-            'Annual Return': sum(quarterly_incomes) * 4 / sum(total_investment) * 100
+            'Annual Return': sum(quarterly_incomes) * 4 / sum(total_investment) * 100 if sum(total_investment) > 0 else 0
         })
     
     # Add blended strategy if available
@@ -448,7 +446,7 @@ def render_recommendations():
             'Strategy': 'Blended Approach',
             'Total Investment': blended_df['Investment'].sum(),
             'Monthly Income': blended_df['Monthly_Income'].sum(),
-            'Annual Return': blended_df['Monthly_Income'].sum() * 12 / blended_df['Investment'].sum() * 100
+            'Annual Return': blended_df['Monthly_Income'].sum() * 12 / blended_df['Investment'].sum() * 100 if blended_df['Investment'].sum() > 0 else 0
         })
     
     # Add efficient strategy if available
@@ -457,7 +455,7 @@ def render_recommendations():
             'Strategy': 'Efficient Income',
             'Total Investment': efficient_df['Investment'].sum(),
             'Monthly Income': efficient_df['Monthly_Income'].sum(),
-            'Annual Return': efficient_df['Monthly_Income'].sum() * 12 / efficient_df['Investment'].sum() * 100
+            'Annual Return': efficient_df['Monthly_Income'].sum() * 12 / efficient_df['Investment'].sum() * 100 if efficient_df['Investment'].sum() > 0 else 0
         })
     
     if comparison_data:
