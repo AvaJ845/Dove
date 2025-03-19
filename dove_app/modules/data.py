@@ -1,242 +1,140 @@
-# modules/ui_components.py
-# UI components and rendering functions with reset button
+# modules/data.py
+# Handles data initialization and loading
 
 import streamlit as st
 import pandas as pd
 
-def load_css():
-    """Load basic CSS styles"""
-    st.markdown("""
-    <style>
-        .header-container {
-            text-align: center;
-            padding: 1rem 0;
-            margin-bottom: 1rem;
-        }
-        .footer-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #f8f9fa;
-            text-align: center;
-            padding: 10px;
-            border-top: 1px solid #e9ecef;
-            z-index: 999;
-        }
-        .dove-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .app-title {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 0;
-            color: #1E3A8A;
-        }
-        .app-subtitle {
-            font-style: italic;
-            margin: 0.3rem 0;
-            color: #495057;
-        }
-        .company-name {
-            font-weight: 500;
-            color: #495057;
-        }
-        .reset-button {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .reset-button:hover {
-            background-color: #c82333;
-        }
-    </style>
-    """, unsafe_allow_html=True)
+def initialize_data():
+    """Initialize default portfolio data in session state"""
+    
+    # Monthly ETFs data
+    st.session_state.monthly_etfs_data = {
+        'Ticker': ['JEPI', 'JEPQ', 'DIVO', 'SDIV', 'CLM', 'MAIN', 'PSEC'],
+        'Name': [
+            'JPMorgan Equity Premium Income ETF',
+            'JPMorgan Nasdaq Equity Premium Income ETF',
+            'Amplify CWP Enhanced Dividend Income ETF',
+            'Global X SuperDividend ETF',
+            'Cornerstone Strategic Value Fund',
+            'Main Street Capital Corporation',
+            'Prospect Capital Corporation'
+        ],
+        'Price': [55, 48, 38, 22, 7, 42, 6],
+        'Annual_Yield': [6.0, 5.4, 4.2, 8.4, 24.0, 6.8, 11.5],
+        'Monthly_Yield': [0.5, 0.45, 0.35, 0.7, 2.0, 0.57, 0.96],
+        'Shares': [500, 450, 400, 600, 1200, 0, 0]
+    }
+    
+    # Group 1 quarterly stocks data (Jan/Apr/Jul/Oct)
+    st.session_state.group1_data = {
+        'Ticker': ['PG', 'KO', 'JNJ', 'PEP', 'MSFT', 'V', 'NKE'],
+        'Name': ['Procter & Gamble', 'Coca-Cola', 'Johnson & Johnson', 'PepsiCo', 'Microsoft', 'Visa', 'Nike'],
+        'Price': [165, 60, 150, 170, 425, 280, 98],
+        'Annual_Yield': [2.4, 2.8, 3.0, 2.9, 0.7, 0.8, 1.2],
+        'Shares': [120, 200, 150, 110, 0, 0, 0]
+    }
+    
+    # Group 2 quarterly stocks data (Feb/May/Aug/Nov)
+    st.session_state.group2_data = {
+        'Ticker': ['MMM', 'ABT', 'XOM', 'LOW', 'AAPL', 'TGT', 'HRL'],
+        'Name': ['3M', 'Abbott Laboratories', 'Exxon Mobil', 'Lowe\'s', 'Apple', 'Target', 'Hormel Foods'],
+        'Price': [90, 110, 110, 220, 178, 165, 35],
+        'Annual_Yield': [5.6, 2.0, 3.5, 2.0, 0.5, 3.0, 3.2],
+        'Shares': [180, 150, 200, 100, 0, 0, 0]
+    }
+    
+    # Group 3 quarterly stocks data (Mar/Jun/Sep/Dec)
+    st.session_state.group3_data = {
+        'Ticker': ['KMB', 'T', 'CVX', 'MCD', 'MO', 'SBUX', 'LLY', 'GPC', 'EMR', 'NOV', 'VOO'],
+        'Name': ['Kimberly-Clark', 'AT&T', 'Chevron', 'McDonald\'s', 'Altria Group', 'Starbucks', 'Eli Lilly', 
+                'Genuine Parts Company', 'Emerson Electric', 'NOV Inc.', 'Vanguard S&P 500 ETF'],
+        'Price': [130, 17, 145, 270, 45, 95, 770, 150, 110, 18, 485],
+        'Annual_Yield': [3.5, 6.5, 4.2, 2.3, 7.8, 2.4, 0.9, 2.5, 2.2, 1.1, 1.4],
+        'Shares': [180, 2000, 160, 120, 0, 0, 0, 0, 0, 0, 0]
+    }
 
-def reset_all_shares():
-    """Reset all stock shares to zero"""
-    # Reset monthly ETFs
-    for i in range(len(st.session_state.monthly_etfs_data['Shares'])):
-        st.session_state.monthly_etfs_data['Shares'][i] = 0
-    
-    # Reset group 1 stocks
-    for i in range(len(st.session_state.group1_data['Shares'])):
-        st.session_state.group1_data['Shares'][i] = 0
-    
-    # Reset group 2 stocks
-    for i in range(len(st.session_state.group2_data['Shares'])):
-        st.session_state.group2_data['Shares'][i] = 0
-    
-    # Reset group 3 stocks
-    for i in range(len(st.session_state.group3_data['Shares'])):
-        st.session_state.group3_data['Shares'][i] = 0
-    
-    # Reset all number input widgets by setting a rerun flag
-    st.session_state.reset_triggered = True
+def calculate_monthly_etf_income(df):
+    """Calculate monthly income from ETFs"""
+    df['Monthly_Income'] = df['Price'] * df['Shares'] * df['Monthly_Yield'] / 100
+    df['Investment'] = df['Price'] * df['Shares']
+    return df
 
-def display_metrics(value1, value2, value3, value4, labels=None):
-    """Display key metrics in a row of columns"""
-    if labels is None:
-        labels = ["Total Investment", "Annual Income", "Monthly Avg Income", "Portfolio Yield"]
-    
-    formats = ["${:,.2f}", "${:,.2f}", "${:,.2f}", "{:.2f}%"]
-    values = [value1, value2, value3, value4]
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric(labels[0], formats[0].format(values[0]))
-    
-    with col2:
-        st.metric(labels[1], formats[1].format(values[1]))
-    
-    with col3:
-        st.metric(labels[2], formats[2].format(values[2]))
-    
-    with col4:
-        st.metric(labels[3], formats[3].format(values[3]))
+def calculate_quarterly_income(df):
+    """Calculate quarterly income from stocks"""
+    df['Quarterly_Income'] = df['Price'] * df['Shares'] * df['Annual_Yield'] / 400  # Annual yield / 4 quarters
+    df['Monthly_Equivalent'] = df['Quarterly_Income'] / 3  # Spreading quarterly over 3 months
+    df['Investment'] = df['Price'] * df['Shares']
+    return df
 
-def render_portfolio_editor():
-    """Render the portfolio editor section with reset button"""
-    # Add reset button at the top
-    reset_col1, reset_col2 = st.columns([1, 5])
-    with reset_col1:
-        if st.button("Reset All Shares to Zero", type="primary", use_container_width=True):
-            reset_all_shares()
-            st.rerun()  # Trigger a rerun to update all widgets
+def load_dataframes():
+    """Load and calculate all dataframes"""
+    # Convert session state data to DataFrames
+    monthly_etfs_df = pd.DataFrame(st.session_state.monthly_etfs_data)
+    monthly_etfs_df = calculate_monthly_etf_income(monthly_etfs_df)
     
-    with reset_col2:
-        st.info("Warning: This will set all stock share quantities to zero. This action cannot be undone.")
+    group1_df = pd.DataFrame(st.session_state.group1_data)
+    group1_df = calculate_quarterly_income(group1_df)
     
-    # Check if we need to rerun after reset (should only happen once)
-    if 'reset_triggered' in st.session_state and st.session_state.reset_triggered:
-        st.session_state.reset_triggered = False
+    group2_df = pd.DataFrame(st.session_state.group2_data)
+    group2_df = calculate_quarterly_income(group2_df)
     
-    col1, col2 = st.columns(2)
+    group3_df = pd.DataFrame(st.session_state.group3_data)
+    group3_df = calculate_quarterly_income(group3_df)
     
-    with col1:
-        st.subheader("Monthly Dividend ETFs/BDCs")
-        
-        monthly_etfs_df = pd.DataFrame(st.session_state.monthly_etfs_data)
-        
-        for i, row in monthly_etfs_df.iterrows():
-            ticker = row['Ticker']
-            shares = row['Shares']
-            price = row['Price']
-            
-            st.session_state.monthly_etfs_data['Shares'][i] = st.number_input(
-                f"{ticker} - ${price} ({row['Annual_Yield']}% yield) - Shares:",
-                min_value=0,
-                value=int(shares),
-                step=10,
-                key=f"monthly_{ticker}"
-            )
-        
-        st.subheader("Jan/Apr/Jul/Oct Quarterly Stocks")
-        
-        group1_df = pd.DataFrame(st.session_state.group1_data)
-        
-        for i, row in group1_df.iterrows():
-            ticker = row['Ticker']
-            shares = row['Shares']
-            price = row['Price']
-            
-            st.session_state.group1_data['Shares'][i] = st.number_input(
-                f"{ticker} - ${price} ({row['Annual_Yield']}% yield) - Shares:",
-                min_value=0,
-                value=int(shares),
-                step=10,
-                key=f"group1_{ticker}"
-            )
+    return monthly_etfs_df, group1_df, group2_df, group3_df
 
-    with col2:
-        st.subheader("Feb/May/Aug/Nov Quarterly Stocks")
-        
-        group2_df = pd.DataFrame(st.session_state.group2_data)
-        
-        for i, row in group2_df.iterrows():
-            ticker = row['Ticker']
-            shares = row['Shares']
-            price = row['Price']
-            
-            st.session_state.group2_data['Shares'][i] = st.number_input(
-                f"{ticker} - ${price} ({row['Annual_Yield']}% yield) - Shares:",
-                min_value=0,
-                value=int(shares),
-                step=10,
-                key=f"group2_{ticker}"
-            )
-        
-        st.subheader("Mar/Jun/Sep/Dec Quarterly Stocks")
-        
-        group3_df = pd.DataFrame(st.session_state.group3_data)
-        
-        for i, row in group3_df.iterrows():
-            ticker = row['Ticker']
-            shares = row['Shares']
-            price = row['Price']
-            
-            st.session_state.group3_data['Shares'][i] = st.number_input(
-                f"{ticker} - ${price} ({row['Annual_Yield']}% yield) - Shares:",
-                min_value=0,
-                value=int(shares),
-                step=10,
-                key=f"group3_{ticker}"
-            )
+def update_shares(ticker_group, ticker, shares):
+    """Update shares for a specific ticker in a group"""
+    group_data = getattr(st.session_state, f"{ticker_group}_data")
+    ticker_index = group_data['Ticker'].index(ticker)
+    group_data['Shares'][ticker_index] = shares
 
-def render_projection_controls():
-    """Render controls for projection settings"""
-    col1, col2 = st.columns(2)
+def get_all_stocks():
+    """Get a list of all stocks in the portfolio for reference"""
+    all_stocks = []
     
-    with col1:
-        years = st.slider("Projection Years", 1, 30, 10)
+    # Add monthly ETFs
+    monthly_etfs_df = pd.DataFrame(st.session_state.monthly_etfs_data)
+    for i, row in monthly_etfs_df.iterrows():
+        all_stocks.append({
+            'Ticker': row['Ticker'],
+            'Name': row['Name'],
+            'Type': 'Monthly ETF/BDC',
+            'Annual Yield': f"{row['Annual_Yield']}%",
+            'Payment Schedule': 'Monthly'
+        })
     
-    with col2:
-        growth_rate = st.slider("Annual Dividend Growth Rate (%)", 0.0, 15.0, 5.0, 0.1)
+    # Add Group 1 stocks
+    group1_df = pd.DataFrame(st.session_state.group1_data)
+    for i, row in group1_df.iterrows():
+        all_stocks.append({
+            'Ticker': row['Ticker'],
+            'Name': row['Name'],
+            'Type': 'Dividend Aristocrat/King',
+            'Annual Yield': f"{row['Annual_Yield']}%",
+            'Payment Schedule': 'Jan, Apr, Jul, Oct'
+        })
     
-    return years, growth_rate
-
-def render_drip_controls():
-    """Render controls for DRIP (Dividend Reinvestment Plan) settings"""
-    col1, col2, col3 = st.columns(3)
+    # Add Group 2 stocks
+    group2_df = pd.DataFrame(st.session_state.group2_data)
+    for i, row in group2_df.iterrows():
+        all_stocks.append({
+            'Ticker': row['Ticker'],
+            'Name': row['Name'],
+            'Type': 'Dividend Aristocrat/King',
+            'Annual Yield': f"{row['Annual_Yield']}%",
+            'Payment Schedule': 'Feb, May, Aug, Nov'
+        })
     
-    with col1:
-        drip_percentage = st.slider("Percentage of Dividends Reinvested", 0, 100, 50)
+    # Add Group 3 stocks
+    group3_df = pd.DataFrame(st.session_state.group3_data)
+    for i, row in group3_df.iterrows():
+        all_stocks.append({
+            'Ticker': row['Ticker'],
+            'Name': row['Name'],
+            'Type': 'Dividend Aristocrat/King',
+            'Annual Yield': f"{row['Annual_Yield']}%",
+            'Payment Schedule': 'Mar, Jun, Sep, Dec'
+        })
     
-    with col2:
-        additional_investment = st.number_input(
-            "Additional Annual Investment ($)",
-            min_value=0,
-            value=0,
-            step=1000
-        )
-    
-    with col3:
-        price_growth = st.slider("Annual Stock Price Appreciation (%)", 0.0, 15.0, 3.0, 0.1)
-    
-    return drip_percentage, additional_investment, price_growth
-
-def display_header():
-    """Display the application header with styling"""
-    st.markdown("""
-        <div class="header-container">
-            <div class="dove-icon">🕊️</div>
-            <h1 class="app-title">Dove v1</h1>
-            <p class="app-subtitle">Dividend Income Calculator</p>
-            <p class="company-name">AvaResearch LLC</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-def display_footer():
-    """Display the application footer"""
-    st.markdown("""
-        <div class="footer-container">
-            <p style="margin-bottom: 0;">© 2025 AvaResearch LLC. All rights reserved.</p>
-        </div>
-    """, unsafe_allow_html=True)
+    return pd.DataFrame(all_stocks)
