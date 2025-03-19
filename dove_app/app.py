@@ -1,5 +1,4 @@
 # app.py - Main application file
-
 import streamlit as st
 from modules.data import initialize_data, load_dataframes
 from modules.calculations import calculate_monthly_income, calculate_portfolio_metrics
